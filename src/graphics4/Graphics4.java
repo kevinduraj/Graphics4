@@ -8,9 +8,6 @@ import javax.imageio.ImageIO;
 
 public class Graphics4 {
 
-    /**
-     * @param args
-     */
     public static void main(String[] args) {
 
 
@@ -29,24 +26,37 @@ public class Graphics4 {
             int grn[][] = new int[width][height];
             int blu[][] = new int[width][height];
 
-            for (int x = 1; x < width; x++) {
-                for (int y = 1; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
                     red[x][y] = bi.getRGB(x, y) >> 16 & 0xFF;
                     grn[x][y] = bi.getRGB(x, y) >> 8 & 0xFF;
                     blu[x][y] = bi.getRGB(x, y) & 0xFF;
-                    //System.out.printf("red=%d green=%d blue=%d \n", red[x][y], grn[x][y], blu[x][y]);
+                    //System.out.printf("red=%d green=%d blue=%d \n"
+                    // , red[x][y], grn[x][y], blu[x][y]);
                 }
             }
 
-
+            /*----------------------- Part 1----------------------------------*/
             // -- move image into BufferedImage object
             bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-            for (int x = 1; x < width; x++) {
-                for (int y = 1; y < height; y++) {
-                    
+            double currentAlpha = 0.5;
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+ 
                     int Y = (int) (0.299 * red[x][y] + 0.587 * grn[x][y] + 0.114 * blu[x][y]);
-                    int pixel = (Y << 16) | (Y << 8) | (Y);
+                    // Alpha Blend
+                    int newRed   = (int) ((1-currentAlpha) * red[x][y] + currentAlpha * Y);
+                    int newGreen = (int) ((1-currentAlpha) * grn[x][y] + currentAlpha * Y);
+                    int newBlue  = (int) ((1-currentAlpha) * blu[x][y] + currentAlpha * Y);
+                    
+                    //System.out.printf("red=%d green=%d blue=%d \n"
+                    //        + "newRed=%d newGreen=%d newBlue=%d\n\n" , 
+                    //        red[x][y], grn[x][y], blu[x][y],
+                    //        newRed,newGreen,newBlue
+                    //        );
+                    
+                    int pixel = (newRed << 16) | (newGreen << 8) | (newBlue );
                     bi.setRGB(x, y, pixel);
                 }
             }
@@ -56,6 +66,9 @@ public class Graphics4 {
         } catch (IOException e) {
             System.out.println("image error");
         }
+        
+        
+        
 
         System.out.println("done");
 
