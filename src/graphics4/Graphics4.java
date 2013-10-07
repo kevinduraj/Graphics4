@@ -10,6 +10,7 @@ public class Graphics4 {
 
     int numberOfImages = 30;
 
+    /*------------------------------------------------------------------------*/
     public static void main(String[] args) throws IOException {
 
         Graphics4 img = new Graphics4();
