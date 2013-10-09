@@ -95,17 +95,28 @@ public class Graphics4 {
         int red[][] = new int[width][height];
         int grn[][] = new int[width][height];
         int blu[][] = new int[width][height];
-
+        
         // 1.) Read the image into RGB space 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 red[x][y] = bi.getRGB(x, y) >> 16 & 0xFF;
                 grn[x][y] = bi.getRGB(x, y) >> 8 & 0xFF;
                 blu[x][y] = bi.getRGB(x, y) & 0xFF;
-                //System.out.printf("red=%d green=%d blue=%d \n"
-                // , red[x][y], grn[x][y], blu[x][y]);
+                
+                    // 2.) Convert to YPbPr space
+                double Y  = (0.299 * red[x][y])  + (0.587  * grn[x][y])  + (0.114 * blu[x][y]); // & 0xFF;
+                double Pb = (-0.168 * red[x][y]) + (-0.331 * grn[x][y]) + (0.500 * blu[x][y]); //& 0xFF;
+                double Pr = (0.500 * red[x][y])  + (-0.418 * grn[x][y]) + (-0.081 * blu[x][y]);// & 0xFF;                   
+               //int pixel = ((int) Y << 16) | ((int) Pb << 8) | ((int) Pr);
+                red[x][y] = (int)Y  & 0xFF;
+                grn[x][y] = (int)Pb & 0xFF;
+                blu[x][y] = (int)Pr & 0xFF;
+                //System.out.println( red[x][y] + "\t" + grn[x][y] + "\t" + blu[x][y]);
             }
         }
+        
+        
+
 
         /*-------------------- Convert to YPbPr ------------------------------*/
         bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -119,17 +130,23 @@ public class Graphics4 {
                     int pixel;
                     //Original Image
                     //int pixel = ((int) red[x][y] << 16) | ((int) grn[x][y] << 8) | ((int) blu[x][y]);
+                    double Gray = (0.299 * red[x][y]) + (0.587 * grn[x][y]) + (0.114 * blu[x][y]); // & 0xFF;
 
                     // 2.) Convert to YPbPr space
-                    double Y  = (0.299 * red[x][y])  + (0.587 * grn[x][y])  + (0.114 * blu[x][y]); // & 0xFF;
-                    double Pb = (-0.168 * red[x][y]) + (-0.331 * grn[x][y]) + (0.500 * blu[x][y]); // & 0xFF;
-                    double Pr = (0.500 * red[x][y])  + (-0.418 * grn[x][y]) + (-0.081 * blu[x][y]);// & 0xFF;                   
-                    //int pixel = ((int) Y << 16) | ((int) Pb << 8) | ((int) Pr);
+                    int Y = red[x][y]; // & 0xFF;
+                    int Pb = grn[x][y];
+                    int Pr = blu[x][y];
 
                     //3.) Fade it to gray scale within the YPbPr space
-                    int fadeY  = (int) ((1 - Alpha) * Y  + Alpha * Y) & 0xFF;
-                    int fadePb = (int) ((1 - Alpha) * Pb + Alpha * Y) & 0xFF;
-                    int fadePr = (int) ((1 - Alpha) * Pr + Alpha * Y) & 0xFF;                    
+                    //int fadeY  = (int) ((1 - Alpha) * Y  + Alpha * Y) & 0xFF;
+                    //int fadePb = (int) ((1 - Alpha) * Pb + Alpha * Y) & 0xFF;
+                    //int fadePr = (int) ((1 - Alpha) * Pr + Alpha * Y) & 0xFF;
+
+                    //3.) Fade it to gray scale within the YPbPr space
+                    int fadeY = (int) ((1 - Alpha) * Y + Alpha * Gray) & 0xFF;
+                    int fadePb = (int) ((1 - Alpha) * Pb + Alpha * Gray) & 0xFF;
+                    int fadePr = (int) ((1 - Alpha) * Pr + Alpha * Gray) & 0xFF;
+
                     pixel = ((int) fadeY << 16) | ((int) fadePb << 8) | ((int) fadePr);
 
                     //4.) Convert it back to RGB space for saving to disk9
