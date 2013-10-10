@@ -14,8 +14,8 @@ public class Graphics4 {
     public static void main(String[] args) throws IOException {
 
         Graphics4 img = new Graphics4();
-        //img.RGB_ColorSpace();
-        img.YPbPr_ColorSpace();
+        img.RGB_ColorSpace();
+        //img.YPbPr_ColorSpace();
     }
 
     /*------------------------------------------------------------------------*/
@@ -103,21 +103,18 @@ public class Graphics4 {
                 grn[x][y] = bi.getRGB(x, y) >> 8 & 0xFF;
                 blu[x][y] = bi.getRGB(x, y) & 0xFF;
                 
-                    // 2.) Convert to YPbPr space
+                // 2.) Convert to YPbPr space
                 double Y  = (0.299 * red[x][y])  + (0.587  * grn[x][y])  + (0.114 * blu[x][y]); // & 0xFF;
                 double Pb = (-0.168 * red[x][y]) + (-0.331 * grn[x][y]) + (0.500 * blu[x][y]); //& 0xFF;
                 double Pr = (0.500 * red[x][y])  + (-0.418 * grn[x][y]) + (-0.081 * blu[x][y]);// & 0xFF;                   
-               //int pixel = ((int) Y << 16) | ((int) Pb << 8) | ((int) Pr);
-                red[x][y] = (int)Y  & 0xFF;
-                grn[x][y] = (int)Pb & 0xFF;
-                blu[x][y] = (int)Pr & 0xFF;
-                //System.out.println( red[x][y] + "\t" + grn[x][y] + "\t" + blu[x][y]);
+
+                red[x][y] = (int)Y;
+                grn[x][y] = (int)Pb;
+                blu[x][y] = (int)Pr;
             }
         }
         
         
-
-
         /*-------------------- Convert to YPbPr ------------------------------*/
         bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
@@ -127,34 +124,21 @@ public class Graphics4 {
 
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
+                    
                     int pixel;
-                    //Original Image
-                    //int pixel = ((int) red[x][y] << 16) | ((int) grn[x][y] << 8) | ((int) blu[x][y]);
-                    double Gray = (0.299 * red[x][y]) + (0.587 * grn[x][y]) + (0.114 * blu[x][y]); // & 0xFF;
 
                     // 2.) Convert to YPbPr space
-                    int Y = red[x][y]; // & 0xFF;
-                    int Pb = grn[x][y];
-                    int Pr = blu[x][y];
+                    int Y  = red[x][y]& 0xFF; // & 0xFF;
+                    int Pb = grn[x][y]& 0xFF;
+                    int Pr = blu[x][y]& 0xFF;
+                    double Gray = (0.299 * Y) + (0.587 * Pb) + (0.114 * Pr); // & 0xFF;
 
-                    //3.) Fade it to gray scale within the YPbPr space
-                    //int fadeY  = (int) ((1 - Alpha) * Y  + Alpha * Y) & 0xFF;
-                    //int fadePb = (int) ((1 - Alpha) * Pb + Alpha * Y) & 0xFF;
-                    //int fadePr = (int) ((1 - Alpha) * Pr + Alpha * Y) & 0xFF;
-
-                    //3.) Fade it to gray scale within the YPbPr space
-                    int fadeY = (int) ((1 - Alpha) * Y + Alpha * Gray) & 0xFF;
+                    // 3.) Fade it to gray scale within the YPbPr space
+                    int fadeY  = (int) ((1 - Alpha) * Y  + Alpha * Gray) & 0xFF;
                     int fadePb = (int) ((1 - Alpha) * Pb + Alpha * Gray) & 0xFF;
                     int fadePr = (int) ((1 - Alpha) * Pr + Alpha * Gray) & 0xFF;
 
                     pixel = ((int) fadeY << 16) | ((int) fadePb << 8) | ((int) fadePr);
-
-                    //4.) Convert it back to RGB space for saving to disk9
-                    //int rgbRed   = (int) ((1.000 * fadeY) + (0.000  * fadePb) + (1.402  * fadePr)) & 0xFF;
-                    //int rgbGreen = (int) ((1.000 * fadeY) + (-0.344 * fadePb) + (-0.714 * fadePr)) & 0xFF;
-                    //int rgbBlue  = (int) ((1.000 * fadeY) + (1.772  * fadePb) + (0.000  * fadePr)) & 0xFF;             
-                    //pixel = ((int) rgbRed << 16) | ((int) rgbGreen << 8) | ((int) rgbBlue);
-
                     bi.setRGB(x, y, pixel);
 
                 }
@@ -165,6 +149,34 @@ public class Graphics4 {
             File outputfile = new File(filename);
             ImageIO.write(bi, "png", outputfile);
         }
+        
+        // 4.) Convert it back to RGB space for saving to disk
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int Y = red[x][y];
+                int Pb = grn[x][y];
+                int Pr = blu[x][y];
+
+                
+                int RGBRed = (int) ((1.000 * Y) + (0.000 * Pb) + (1.402 * Pr));
+                int RGBGreen = (int) ((1.000 * Y) + (-0.344 * Pb) + (-0.714 * Pr));
+                int RGBBlue = (int) ((1.000 * Y) + (1.772 * Pb) + (0.000 * Pr));
+
+                //int pixel = ((int) RGBRed << 16) | ((int) RGBGreen << 8) | ((int) RGBBlue);
+                //bi.setRGB(x, y, pixel);
+                
+                red[x][y] = RGBRed;
+                grn[x][y] = RGBGreen;
+                blu[x][y] = RGBBlue;
+            }
+        }
+
+        // Test to come back to the same RGB image
+        //String filename = String.format("/Users/ktd/Desktop/img/zzzzz.png");
+        //System.out.println(filename);
+        //File outputfile = new File(filename);
+        //ImageIO.write(bi, "png", outputfile); 
+        
     }
 
 }
